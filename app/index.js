@@ -6,7 +6,7 @@ import configureStore from './store/configure-store'
 import * as reducers from './reducers'
 
 
-const CREATOR_ID = '3752565'
+export const CREATOR_ID = '3752565'
 const store = configureStore(reducers)
 
 ReactDOM.render(

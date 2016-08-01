@@ -2,7 +2,16 @@ import jsonApiUrl from 'utils/json-api-url'
 import fetch from 'isomorphic-fetch'
 import { camelizeKeys } from 'humps'
 
-// ??? fix me: exportable action types!
+export const FETCH_CREATOR_POST_FEED_START = 'FETCH_CREATOR_POST_FEED_START'
+export const FETCH_CREATOR_POST_FEED_SUCCESS = 'FETCH_CREATOR_POST_FEED_SUCCESS'
+
+const fetchCreatorPostFeedStart = () => {
+    return { type: FETCH_CREATOR_POST_FEED_START };
+}
+
+const fetchCreatorPostFeedSuccess = (payload) => {
+    return { type: FETCH_CREATOR_POST_FEED_SUCCESS, payload };
+}
 
 const fetchCreatorPostFeedIncludes = ['user.null']
 const fetchCreatorPostFeedFields = {
@@ -21,17 +30,33 @@ const fetchCreatorPostFeedFields = {
 }
 
 export const fetchCreatorPostFeed = (creatorId) => {
-    const url = jsonApiUrl('/stream', {
-        'include': fetchCreatorPostFeedIncludes,
-        'fields': fetchCreatorPostFeedFields,
-        'page': {
-            'cursor': 'null'
-        },
-        'filter': {
-            'is_by_creator': 'true',
-            'is_following': 'false',
-            'creator_id': creatorId
-        }
-    })
-    // ??? fix me
+    return (dispatch, getState) => {
+        const url = jsonApiUrl('/stream', {
+            'include': fetchCreatorPostFeedIncludes,
+            'fields': fetchCreatorPostFeedFields,
+            'page': {
+                'cursor': 'null'
+            },
+            'filter': {
+                'is_by_creator': 'true',
+                'is_following': 'false',
+                'creator_id': creatorId
+            }
+        })
+
+        dispatch(fetchCreatorPostFeedStart());
+
+        fetch(url).then((response) => {
+            return response.json()
+        }).then((payload) => {
+            const massagedData = payload.data.map((post) => {
+                return {
+                    ...post.attributes,
+                    id: post.id
+                }
+            })
+
+            dispatch(fetchCreatorPostFeedSuccess(massagedData));
+        })
+    };
 }
